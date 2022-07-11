@@ -1,13 +1,13 @@
-﻿string omina_directory = $@"G:\Storage\Archives\Pixiv Archives";
-string hitomi_directory = $@"G:\Storage\Macrojack VR Build Programs\hitomi_downloader_GUI\hitomi_downloaded_pixiv";
+﻿string omina_main_directory = $@"G:\Storage\Archives\Pixiv Archives";
+string hitomi_main_directory = $@"G:\Storage\Macrojack VR Build Programs\hitomi_downloader_GUI\hitomi_downloaded_pixiv";
 
-if (!Directory.Exists(omina_directory))
+if (!Directory.Exists(omina_main_directory))
 {
     Console.WriteLine("Omina directory does not exist. Please check your input and try again.\n");
     return;
 }
 
-if (!Directory.Exists(hitomi_directory))
+if (!Directory.Exists(hitomi_main_directory))
 {
     Console.WriteLine("Hitomi directory does not exist. Please check your input and try again.\n");
     return;
@@ -15,48 +15,47 @@ if (!Directory.Exists(hitomi_directory))
 
 Console.WriteLine("Counting Omina subfolders...\n");
 
-int omina_subfolder_count = Directory.GetDirectories(omina_directory).Length;
+int omina_subfolder_count = Directory.GetDirectories(omina_main_directory).Length;
 
 Console.WriteLine($"Omina subfolder directory count is {omina_subfolder_count}. Continue? (Y/N)\n");
 
-bool validation = false;
+bool input_validation = false;
 
-while (validation == false)
+while (input_validation == false)
 {
-    var user_confirmation = Console.ReadLine();
+    var user_input = Console.ReadLine();
 
-    if (user_confirmation != null)
+    if (user_input != null)
     {
-        user_confirmation = user_confirmation.ToLower();
+        user_input = user_input.ToLower();
 
-        if (user_confirmation == "n" || user_confirmation == "no")
+        if (user_input == "n" || user_input == "no")
         {
             return;
         }
-        else if (user_confirmation == "y" || user_confirmation == "yes")
+        else if (user_input == "y" || user_input == "yes")
         {
-            validation = true;
+            input_validation = true;
         }
     }
 }
 
 #pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
-string[] artist_subdirectories_paths = Directory.GetDirectories(omina_directory);
-string[] artist_subdirectories_names = Directory.GetDirectories(omina_directory).Select(Path.GetFileName).ToArray();
+string[] omina_subfolder_paths = Directory.GetDirectories(omina_main_directory);
+string[] omina_subfolder_names = Directory.GetDirectories(omina_main_directory).Select(Path.GetFileName).ToArray();
 #pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 
-string artist_folder_name = "";
-string artwork_id = "";
-string artwork_name = "";
-//string image_number = "";
+string artist_name = "";
+string post_id = "";
+string post_title = "";
 
-for (int i = 21; i < 22; i++) // i < omina_subfolder_count
+for (int i = 0; i < omina_subfolder_count; i++)
 {
-    artist_folder_name = artist_subdirectories_names[i];
+    artist_name = omina_subfolder_names[i];
 
-    Console.WriteLine($"({i + 1} / {omina_subfolder_count}) Current folder: {artist_folder_name}\n");
+    Console.WriteLine($"({i + 1} / {omina_subfolder_count}) Current folder: {artist_name}\n");
 
-    string new_hitomi_artist_directory = $@"{hitomi_directory}\{artist_folder_name}";
+    string new_hitomi_artist_directory = $@"{hitomi_main_directory}\{artist_name}";
 
     if (!Directory.Exists(new_hitomi_artist_directory))
     {
@@ -64,37 +63,37 @@ for (int i = 21; i < 22; i++) // i < omina_subfolder_count
     }
 
     #pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
-    string current_artist_subdirectory_path = artist_subdirectories_paths[i];
-    string[] artwork_of_artist_folder_paths = Directory.GetDirectories(current_artist_subdirectory_path);
-    string[] artwork_of_artist_folder_names = Directory.GetDirectories(current_artist_subdirectory_path).Select(Path.GetFileName).ToArray();
+    string current_omina_subfolder_path = omina_subfolder_paths[i];
+    string[] post_paths = Directory.GetDirectories(current_omina_subfolder_path);
+    string[] post_titles = Directory.GetDirectories(current_omina_subfolder_path).Select(Path.GetFileName).ToArray();
     #pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 
-    for (int j = 0; j < artwork_of_artist_folder_names.Length; j++)
+    for (int j = 0; j < post_titles.Length; j++)
     {
         char[] delimiterChars = { '_' };
-        List<string> omina_artwork_folder_title = artwork_of_artist_folder_names[j].Split(delimiterChars).ToList();
+        List<string> current_post_title = post_titles[j].Split(delimiterChars).ToList();
 
-        artwork_id = omina_artwork_folder_title[0];
-        omina_artwork_folder_title.RemoveAt(0);
+        post_id = current_post_title[0];
+        current_post_title.RemoveAt(0);
 
-        artwork_name = String_List_To_String(omina_artwork_folder_title);
+        post_title = String_List_To_String(current_post_title);
 
-        string[] artwork_image_paths = Directory.GetFiles(artwork_of_artist_folder_paths[j]);
+        string[] post_image_paths = Directory.GetFiles(post_paths[j]);
 
-        for (int pic_number = 0; pic_number < artwork_image_paths.Length; pic_number++)
+        for (int image_number = 0; image_number < post_image_paths.Length; image_number++)
         {
-            string image_extention = Path.GetExtension($@"{artwork_of_artist_folder_paths[j]}\{artwork_image_paths[pic_number]}");
-            string new_filename = $@"{artwork_id}_p{pic_number} {artwork_name}{image_extention}";
+            string image_extention = Path.GetExtension($@"{post_paths[j]}\{post_image_paths[image_number]}");
+            string new_filename = $@"{post_id}_p{image_number} {post_title}{image_extention}";
 
             Console.WriteLine($"Transferring {new_filename}...");
 
-            System.IO.File.Copy($@"{artwork_image_paths[pic_number]}", $@"{new_hitomi_artist_directory}\{new_filename}");
+            System.IO.File.Copy($@"{post_image_paths[image_number]}", $@"{new_hitomi_artist_directory}\{new_filename}");
         }
     }
 
     // GIF Transfer
     #pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
-    string[] gif_files = Directory.GetFiles($@"{current_artist_subdirectory_path}", "*.gif").Select(Path.GetFileName).ToArray();
+    string[] gif_files = Directory.GetFiles($@"{current_omina_subfolder_path}", "*.gif").Select(Path.GetFileName).ToArray();
     #pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 
     for (int iterated_gif = 0; iterated_gif < gif_files.Length; iterated_gif++)
@@ -102,16 +101,16 @@ for (int i = 21; i < 22; i++) // i < omina_subfolder_count
         char[] delimiterChars = { '_' };
         List<string> gif_title = gif_files[iterated_gif].Split(delimiterChars).ToList();
 
-        artwork_id = gif_title[0];
+        post_id = gif_title[0];
         gif_title.RemoveAt(0);
 
-        artwork_name = String_List_To_String(gif_title);
+        post_title = String_List_To_String(gif_title);
 
-        string new_filename = $@"{artwork_id}_p0 {artwork_name}";
+        string new_filename = $@"{post_id}_p0 {post_title}";
 
         Console.WriteLine($"Transferring {new_filename}...");
 
-        System.IO.File.Copy($@"{current_artist_subdirectory_path}\{gif_files[iterated_gif]}", $@"{new_hitomi_artist_directory}\{new_filename}");
+        System.IO.File.Copy($@"{current_omina_subfolder_path}\{gif_files[iterated_gif]}", $@"{new_hitomi_artist_directory}\{new_filename}");
     }
 }
 
@@ -119,10 +118,8 @@ Console.WriteLine($"Transfer complete!\n");
 
 string String_List_To_String(List<string> input_list)
 {
-    // Create an empty string variable.
     string output_string = "";
 
-    // Iterate through each index of the list and add it to the string variable.
     for (int i = 0; i < input_list.Count; i++)
     {
         if (i == input_list.Count - 1)
@@ -135,6 +132,5 @@ string String_List_To_String(List<string> input_list)
         }
     }
 
-    // Return the string variable.
     return output_string;
 }
