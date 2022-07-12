@@ -60,57 +60,66 @@ for (int i = 0; i < omina_subfolder_count; i++)
     if (!Directory.Exists(new_hitomi_artist_directory))
     {
         Directory.CreateDirectory(new_hitomi_artist_directory);
-    }
 
-    #pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
-    string current_omina_subfolder_path = omina_subfolder_paths[i];
-    string[] post_paths = Directory.GetDirectories(current_omina_subfolder_path);
-    string[] post_titles = Directory.GetDirectories(current_omina_subfolder_path).Select(Path.GetFileName).ToArray();
-    #pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
+        #pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
+        string current_omina_subfolder_path = omina_subfolder_paths[i];
+        string[] post_paths = Directory.GetDirectories(current_omina_subfolder_path);
+        string[] post_titles = Directory.GetDirectories(current_omina_subfolder_path).Select(Path.GetFileName).ToArray();
+        #pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 
-    for (int j = 0; j < post_titles.Length; j++)
-    {
-        char[] delimiterChars = { '_' };
-        List<string> current_post_title = post_titles[j].Split(delimiterChars).ToList();
-
-        post_id = current_post_title[0];
-        current_post_title.RemoveAt(0);
-
-        post_title = String_List_To_String(current_post_title);
-
-        string[] post_image_paths = Directory.GetFiles(post_paths[j]);
-
-        for (int image_number = 0; image_number < post_image_paths.Length; image_number++)
+        for (int j = 0; j < post_titles.Length; j++)
         {
-            string image_extention = Path.GetExtension($@"{post_paths[j]}\{post_image_paths[image_number]}");
-            string new_filename = $@"{post_id}_p{image_number} {post_title}{image_extention}";
+            char[] delimiterChars = { '_' };
+            List<string> current_post_title = post_titles[j].Split(delimiterChars).ToList();
+
+            post_id = current_post_title[0];
+            current_post_title.RemoveAt(0);
+
+            post_title = String_List_To_String(current_post_title);
+
+            string[] post_image_paths = Directory.GetFiles(post_paths[j]);
+
+            for (int image_number = 0; image_number < post_image_paths.Length; image_number++)
+            {
+                string image_extention = Path.GetExtension($@"{post_paths[j]}\{post_image_paths[image_number]}");
+                string new_filename = $@"{post_id}_p{image_number} {post_title}{image_extention}";
+
+                Console.WriteLine($"Transferring {new_filename}...");
+
+                System.IO.File.Copy($@"{post_image_paths[image_number]}", $@"{new_hitomi_artist_directory}\{new_filename}");
+            }
+        }
+
+        // GIF Transfer
+        #pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
+        string[] gif_files = Directory.GetFiles($@"{current_omina_subfolder_path}", "*.gif").Select(Path.GetFileName).ToArray();
+        #pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
+
+        for (int iterated_gif = 0; iterated_gif < gif_files.Length; iterated_gif++)
+        {
+            char[] delimiterChars = { '_' };
+            List<string> gif_title = gif_files[iterated_gif].Split(delimiterChars).ToList();
+
+            post_id = gif_title[0];
+            gif_title.RemoveAt(0);
+
+            post_title = String_List_To_String(gif_title);
+
+            string new_filename = $@"{post_id}_p0 {post_title}";
 
             Console.WriteLine($"Transferring {new_filename}...");
 
-            System.IO.File.Copy($@"{post_image_paths[image_number]}", $@"{new_hitomi_artist_directory}\{new_filename}");
+            try
+            {
+                System.IO.File.Copy($@"{current_omina_subfolder_path}\{gif_files[iterated_gif]}", $@"{new_hitomi_artist_directory}\{new_filename}");
+            }
+            catch (IOException)
+            {
+                Console.WriteLine("File already exists");
+            }
         }
-    }
 
-    // GIF Transfer
-    #pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
-    string[] gif_files = Directory.GetFiles($@"{current_omina_subfolder_path}", "*.gif").Select(Path.GetFileName).ToArray();
-    #pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
-
-    for (int iterated_gif = 0; iterated_gif < gif_files.Length; iterated_gif++)
-    {
-        char[] delimiterChars = { '_' };
-        List<string> gif_title = gif_files[iterated_gif].Split(delimiterChars).ToList();
-
-        post_id = gif_title[0];
-        gif_title.RemoveAt(0);
-
-        post_title = String_List_To_String(gif_title);
-
-        string new_filename = $@"{post_id}_p0 {post_title}";
-
-        Console.WriteLine($"Transferring {new_filename}...");
-
-        System.IO.File.Copy($@"{current_omina_subfolder_path}\{gif_files[iterated_gif]}", $@"{new_hitomi_artist_directory}\{new_filename}");
+        Console.WriteLine("\n");
     }
 }
 
